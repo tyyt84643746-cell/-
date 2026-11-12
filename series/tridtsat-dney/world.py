@@ -1,7 +1,7 @@
 """Общий мир сериала «Тридцать дней»: деревня, двор, дождь, телевизор, пузыри, сепия."""
-import math, random
+import math, os, random
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from chars import *
 
 FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -158,3 +158,105 @@ def sepia(img, amt):
     s = np.stack([g * 1.08 + 18, g * 0.9 + 8, g * 0.68], -1)
     out = a * (1 - amt) + s * amt
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).convert("RGBA")
+
+
+# ---- из серии 2: погреб, тетрадь, люк ----
+FH = "/usr/share/fonts/truetype/freefont/FreeSerifBoldItalic.ttf"
+_H = {}
+def hand(sz):
+    if sz not in _H: _H[sz] = ImageFont.truetype(FH if os.path.exists(FH) else FB, sz)
+    return _H[sz]
+PAPER = (226, 210, 176); INK = (52, 44, 78); RUST = (128, 78, 52)
+
+
+def fact_card(img, t, t0, sub):
+    if t < t0: return
+    k = ease((t - t0) / 0.35); f = font(40)
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    tw = od.textlength(sub, font=f); x0 = W / 2 - tw / 2 - 34; y0 = 330 - 20 * (1 - k)
+    od.rounded_rectangle([x0, y0, x0 + tw + 68, y0 + 84], radius=20, fill=(10, 14, 28, int(220 * k)), outline=(255, 178, 64, int(255 * k)), width=3)
+    od.text((x0 + 34, y0 + 18), sub, font=f, fill=(255, 226, 170, int(255 * k)))
+    img.alpha_composite(ov)
+
+
+def hatch(p, cx, cy, s=1.0, open_k=0.0):
+    p.rr(cx - 190 * s, cy - 90 * s, cx + 190 * s, cy + 90 * s, 20 * s, (40, 34, 32))
+    if open_k < 1:
+        yy = cy - 90 * s - 150 * s * open_k
+        p.rr(cx - 180 * s, yy + 10 * s, cx + 180 * s, yy + 170 * s * (1 - open_k * 0.6), 16 * s, (92, 96, 108))
+        for dx, dy in ((-120, 40), (60, 110), (110, 50), (-40, 120)): p.circ(cx + dx * s, yy + dy * s * (1 - open_k * 0.6), 14 * s, RUST)
+        p.el(cx - 36 * s, yy + 60 * s, cx + 36 * s, yy + 110 * s, None, (40, 42, 50), int(10 * s))
+        for dx in (-150, 150): p.circ(cx + dx * s, yy + 30 * s, 8 * s, (50, 52, 60))
+
+
+class Cellar:
+    def __init__(s):
+        s.bg = vgrad(W, H, [(0, (40, 30, 28)), (1, (24, 18, 20))])
+        rnd = random.Random(17)
+        def bricks(p):
+            for row in range(0, 28):
+                y = row * 62; off = 70 if row % 2 else 0
+                for x in range(-140 + off, W + 140, 140):
+                    c = mixc((98, 58, 46), (70, 44, 38), rnd.random())
+                    p.rr(x + 4, y + 4, x + 136, y + 58, 6, c)
+            p.rect(0, 1500, W, H, (44, 36, 34))
+            for x in range(-200, W, 160): p.line([(x, 1500), (x + 240, H)], (36, 30, 28), 5, round_caps=False)
+        s.bg.alpha_composite(layer(W, H, bricks))
+        def shelf(p):
+            for y in (700, 980, 1260):
+                p.rr(560, y, 1060, y + 26, 6, (90, 66, 48))
+            p.rect(566, 640, 584, 1500, (74, 54, 40)); p.rect(1036, 640, 1054, 1500, (74, 54, 40))
+            cols = [(120, 140, 110), (140, 110, 80), (110, 124, 140), (150, 130, 96)]
+            for y in (700, 980, 1260):
+                for k in range(5):
+                    x = 610 + k * 86; c = cols[(k + y) % 4]
+                    p.rr(x, y - 150, x + 66, y, 14, mixc(c, (30, 26, 24), 0.35))
+                    p.rr(x + 6, y - 172, x + 60, y - 146, 8, (120, 110, 100))
+                    p.rr(x + 10, y - 110, x + 30, y - 30, 6, mixc(c, (255, 255, 255), 0.12))
+            for (x, y) in ((560, 640), (1060, 640)):                                # паутина
+                for a in range(0, 91, 30):
+                    dx = math.cos(math.radians(a)) * 130 * (1 if x < 800 else -1); dy = math.sin(math.radians(a)) * 130
+                    p.line([(x, y), (x + dx, y + dy)], (150, 150, 160), 2, round_caps=False)
+        s.shelf = layer(W, H, shelf)
+        def ladder(p):
+            p.line([(170, 240), (130, 1520)], (110, 84, 60), 22, round_caps=False)
+            p.line([(390, 240), (430, 1520)], (110, 84, 60), 22, round_caps=False)
+            s.steps = []
+            for k in range(8):
+                y = 380 + k * 150; xl = 170 - 40 * (y - 240) / 1280; xr = 390 + 40 * (y - 240) / 1280
+                p.rr(xl - 6, y, xr + 6, y + 24, 6, (128, 98, 70)); s.steps.append((xl, y, xr))
+        s.ladder = layer(W, H, ladder)
+        shaft = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(shaft).polygon([(140, 0), (420, 0), (620, 1520), (-60, 1520)], fill=(170, 200, 240, 46))
+        s.shaft = shaft.filter(ImageFilter.GaussianBlur(30))
+        s.motes = [(random.random(), random.random(), random.uniform(0, 6.28)) for _ in range(40)]
+
+    def base(s, t, dark=0.55, shaft=True, shelf=True, ladder=True):
+        img = darken(s.bg, dark)
+        if shelf: img.alpha_composite(darken(s.shelf, dark + 0.15))
+        if ladder: img.alpha_composite(darken(s.ladder, dark + 0.2))
+        if shaft:
+            img.alpha_composite(s.shaft)
+            d = ImageDraw.Draw(img)
+            for u, v, ph in s.motes:
+                y = ((v + t * 0.03) % 1.0) * 1500; x = 280 + (u - 0.5) * (280 + y * 0.45) + 8 * math.sin(t + ph)
+                d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(220, 230, 250, 130))
+        return img
+
+
+def notebook(img, t, lines, y0=520, title=None):
+    """Разворот тетради крупным планом. lines: [(t0, рисующая функция p, k)]."""
+    p = P(img, 1.0)
+    p.rr(70, y0 - 60, 1010, y0 + 1000, 18, (70, 52, 40))
+    p.rr(90, y0 - 40, 990, y0 + 980, 10, PAPER)
+    for y in range(y0 + 30, y0 + 960, 62): p.line([(110, y), (970, y)], (190, 180, 160), 2, round_caps=False)
+    p.line([(170, y0 - 40), (170, y0 + 980)], (200, 120, 110), 3, round_caps=False)
+    if title: p.text(200, y0 - 20, title, hand(44), (120, 100, 90))
+    for t0, fn in lines:
+        k = clamp((t - t0) / 0.8)
+        if k > 0: fn(p, k)
+    glow(img, 540, y0 + 400, 700, (255, 236, 196), 0.16, 1.5)
+
+
+def written(p, x, y, text, k, size=54, col=INK):
+    n = int(len(text) * clamp(k)); p.text(x, y, text[:n], hand(size), col)

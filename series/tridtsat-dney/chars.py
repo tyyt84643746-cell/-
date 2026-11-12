@@ -102,7 +102,7 @@ def granny(base, x, y, size, t, mug=False, look=0.0, dark=1.0, sit=False):
     return {"mug": (x + 10 * size, y + (-330 + by) * size)}
 
 
-def kolyan(base, x, y, size, t, dark=1.0, rec=True):
+def kolyan(base, x, y, size, t, dark=1.0, rec=True, phone_up=True, serious=False, look=0.0):
     """Колян: камуфляж, шапка-петушок, телефон у лица, ухмылка."""
     S = 2.0 * size; cw, ch = 420, 680
     img = Image.new("RGBA", (int(cw * S), int(ch * S)), (0, 0, 0, 0))
@@ -117,17 +117,27 @@ def kolyan(base, x, y, size, t, dark=1.0, rec=True):
     for (a, b, c, d_) in [(-60, -380, -10, -340), (10, -320, 60, -280), (-50, -250, 0, -210), (20, -200, 64, -160)]:
         p.el(a, b + by, c, d_ + by, OLD)
     p.line([(-66, -372 + by), (-86, -226 + by)], OL, 34); p.circ(-86, -222 + by, 16, SKIN)
-    p.line([(66, -372 + by), (100, -300 + by)], OL, 34); p.line([(100, -300 + by), (70, -430 + by)], OL, 32)
+    if phone_up:
+        p.line([(66, -372 + by), (100, -300 + by)], OL, 34); p.line([(100, -300 + by), (70, -430 + by)], OL, 32)
+    else:
+        p.line([(66, -372 + by), (88, -226 + by)], OL, 34)
     p.el(-84, -560 + by, 84, -390 + by, SKIN)
     p.chord(-88, -600 + by, 88, -430 + by, 180, 360, (140, 62, 58))
     p.rr(-90, -532 + by, 90, -500 + by, 14, (160, 76, 70)); p.circ(0, -606 + by, 22, (236, 232, 226))
-    for sx in (-30, 30): p.circ(sx, -462 + by, 9, EYE)
-    p.line([(-46, -486 + by), (-18, -480 + by)], BROW, 6); p.line([(18, -480 + by), (46, -486 + by)], BROW, 6)
-    p.arc(-28, -446 + by, 28, -408 + by, 10, 170, EYE, 6)
-    # телефон перед лицом справа
-    p.rr(50, -500 + by, 106, -400 + by, 8, (18, 20, 28)); p.rr(56, -492 + by, 100, -408 + by, 5, (205, 228, 255))
-    if rec and (t % 1.0) < 0.6: p.circ(78, -480 + by, 6, RED)
-    p.circ(76, -420 + by, 16, SKIN)
+    lx = look * 14
+    for sx in (-30, 30): p.circ(sx + lx, -462 + by, 9, EYE)
+    if serious:
+        p.line([(-46 + lx, -480 + by), (-18 + lx, -490 + by)], BROW, 6); p.line([(18 + lx, -490 + by), (46 + lx, -480 + by)], BROW, 6)
+        p.line([(-12 + lx, -424 + by), (12 + lx, -424 + by)], EYE, 6)
+    else:
+        p.line([(-46, -486 + by), (-18, -480 + by)], BROW, 6); p.line([(18, -480 + by), (46, -486 + by)], BROW, 6)
+        p.arc(-28, -446 + by, 28, -408 + by, 10, 170, EYE, 6)
+    if phone_up:
+        p.rr(50, -500 + by, 106, -400 + by, 8, (18, 20, 28)); p.rr(56, -492 + by, 100, -408 + by, 5, (205, 228, 255))
+        if rec and (t % 1.0) < 0.6: p.circ(78, -480 + by, 6, RED)
+        p.circ(76, -420 + by, 16, SKIN)
+    else:
+        p.rr(70, -250 + by, 110, -170 + by, 8, (18, 20, 28)); p.circ(88, -222 + by, 16, SKIN)
     _finish(base, img, size, cw, ch, 210, 650, x, y, dark)
     return {"phone": (x + 78 * size, y + (-450 + by) * size)}
 
