@@ -176,6 +176,42 @@ def nina(base, x, y, size, t, look=0.0, dark=1.0, key_up=0.0):
     return {"hand": (x + (62 + 40 * key_up) * size, y + (-230 - 150 * key_up + by) * size)}
 
 
+def kirill(base, x, y, size, t, look=0.0, dark=1.0, lantern=True, mouth="flat"):
+    """Кирилл Вершинин, ~30: тёмно-серая парка, чёрная шапка, борода, фонарь в руке."""
+    S = 2.0 * size; cw, ch = 460, 680
+    img = Image.new("RGBA", (int(cw * S), int(ch * S)), (0, 0, 0, 0))
+    p = P(img, S, ox=230, oy=650)
+    by = -3 * math.sin(t * 2.1 + 0.4)
+    PK = (70, 78, 92); PKD = (54, 60, 72)
+    p.el(-96, -14, 96, 14, (0, 0, 0, 80))
+    for side in (-1, 1):
+        p.rr(side * 30 - 22, -165, side * 30 + 22, -10, 18, (36, 38, 46)); p.rr(side * 30 - 26, -30, side * 30 + 26, 4, 13, (20, 20, 24))
+    p.rr(-74, -400 + by, 74, -130, 46, PK); p.rr(30, -400 + by, 74, -130, 40, PKD)
+    p.line([(0, -390 + by), (0, -140)], (40, 44, 54), 5, round_caps=False)
+    p.rr(-50, -300 + by, -10, -250 + by, 8, PKD); p.rr(-74, -170, 74, -130, 18, PKD)
+    p.line([(-66, -372 + by), (-86, -226 + by)], PK, 34); p.circ(-86, -222 + by, 16, SKIN)
+    if lantern:
+        p.line([(66, -372 + by), (112, -290 + by)], PK, 34); p.circ(112, -286 + by, 16, SKIN)
+        p.arc(92, -290 + by, 132, -250 + by, 180, 360, (40, 40, 46), 6)
+        p.rr(88, -262 + by, 136, -180 + by, 10, (255, 214, 140)); p.rr(84, -270 + by, 140, -256 + by, 5, (40, 40, 46)); p.rr(84, -186 + by, 140, -172 + by, 5, (40, 40, 46))
+    else:
+        p.line([(66, -372 + by), (86, -226 + by)], PK, 34); p.circ(86, -222 + by, 16, SKIN)
+    p.el(-66, -444 + by, 66, -372 + by, PKD)
+    p.el(-84, -560 + by, 84, -390 + by, SKIN)
+    p.chord(-84, -530 + by, 84, -384 + by, 0, 180, (60, 46, 38))                    # борода
+    p.el(-60, -470 + by, 60, -410 + by, SKIN) if False else None
+    p.chord(-88, -602 + by, 88, -430 + by, 180, 360, (26, 28, 34)); p.rr(-90, -530 + by, 90, -498 + by, 14, (38, 40, 48))
+    lx = look * 14
+    for sx in (-30, 30):
+        if ((t + 0.4) % 3.9) < 0.13: p.line([(sx - 8 + lx, -466 + by), (sx + 8 + lx, -466 + by)], EYE, 5)
+        else: p.circ(sx + lx, -466 + by, 9, EYE)
+    p.line([(-46 + lx, -486 + by), (-18 + lx, -482 + by)], (40, 30, 26), 6); p.line([(18 + lx, -482 + by), (46 + lx, -486 + by)], (40, 30, 26), 6)
+    if mouth == "flat": p.line([(-12 + lx, -426 + by), (12 + lx, -426 + by)], (30, 22, 20), 6)
+    elif mouth == "o": p.el(-8 + lx, -434 + by, 8 + lx, -418 + by, (30, 22, 20))
+    _finish(base, img, size, cw, ch, 230, 650, x, y, dark)
+    return {"lantern": (x + 112 * size, y + (-220 + by) * size)}
+
+
 def silhouette(p, x, y, s, col, hat=None):
     p.rr(x - 50 * s, y - 330 * s, x + 50 * s, y, 34 * s, col)
     p.el(x - 38 * s, y - 420 * s, x + 38 * s, y - 330 * s, mixc(col, (255, 255, 255), 0.08))

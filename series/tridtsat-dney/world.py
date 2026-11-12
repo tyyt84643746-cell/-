@@ -345,3 +345,48 @@ class Room:
             p.rr(120, 360, 420, 700, 8, (30, 30, 40)); p.rr(110, 350, 430, 710, 10, None, (110, 90, 70), 12)       # рамка с фото
             p.el(220, 440, 320, 560, (90, 84, 80)); p.rr(190, 560, 350, 690, 30, (70, 66, 64))
         s.bg.alpha_composite(layer(W, H, deco))
+
+
+# ---- убежище под зерноскладом (с серии 5) ----
+CONC = (86, 88, 96); CONC_D = (60, 62, 70)
+
+class Shelter:
+    """Длинный зал убежища: бетон, двухъярусные койки, плакаты 1962 года, трубы под потолком."""
+    def __init__(s):
+        s.bg = vgrad(W, H, [(0, (48, 50, 58)), (0.5, (70, 72, 80)), (1, (40, 40, 46))])
+        rnd = random.Random(62)
+        def deco(p):
+            p.rect(0, 1480, W, H, (44, 44, 50))
+            for x in range(-200, W, 180): p.line([(x, 1480), (x + 260, H)], (36, 36, 42), 5, round_caps=False)
+            for y in (230, 290): p.rr(-20, y, W + 20, y + 26, 13, (110, 100, 90))            # трубы
+            for x in range(60, W, 240): p.rr(x, 220, x + 30, 330, 6, (90, 82, 74))
+            for x in (270, 810):                                                              # лампы
+                p.line([(x, 316), (x, 400)], (30, 30, 34), 5); p.chord(x - 44, 380, x + 44, 440, 180, 360, (60, 62, 70))
+            for j, x in enumerate((90, 420, 750)):                                            # плакаты
+                p.rr(x, 520, x + 240, 860, 6, (196, 176, 140)); p.rect(x + 16, 536, x + 224, 600, (150, 60, 50))
+                if j == 0: p.poly([(x + 120, 640), (x + 60, 800), (x + 180, 800)], (90, 80, 66))
+                elif j == 1:
+                    p.circ(x + 120, 700, 60, None) if False else p.el(x + 60, 640, x + 180, 760, None, (90, 80, 66), 10)
+                    p.line([(x + 120, 640), (x + 120, 760)], (90, 80, 66), 8); p.line([(x + 60, 700), (x + 180, 700)], (90, 80, 66), 8)
+                else:
+                    for k in range(3): p.rr(x + 50 + k * 50, 660 + k * 20, x + 90 + k * 50, 800, 6, (90, 80, 66))
+                p.text(x + 70, 808, "1962", font(34), (90, 80, 66))
+        s.bg.alpha_composite(layer(W, H, deco))
+        def bunks(p):
+            for x0 in (-60, 640):
+                for tier, y in enumerate((1060, 1330)):
+                    p.rr(x0, y, x0 + 500, y + 34, 8, (96, 84, 70)); p.rr(x0 + 10, y - 44, x0 + 490, y + 4, 14, (120, 122, 116))
+                    p.rr(x0 + 20, y - 70, x0 + 140, y - 30, 16, (170, 170, 164))
+                for x in (x0, x0 + 250, x0 + 486): p.rect(x, 960, x + 14, 1480, (80, 70, 60))
+        s.bunks = layer(W, H, bunks)
+        s.motes = [(rnd.random(), rnd.random(), rnd.uniform(0, 6.28)) for _ in range(50)]
+
+    def base(s, t, dark=0.6, lamps=0.0):
+        img = darken(s.bg, dark); img.alpha_composite(darken(s.bunks, dark + 0.1))
+        if lamps > 0:
+            for x in (270, 810): glow(img, x, 430, 520, WARM, 0.3 * lamps, 1.5); glow(img, x, 428, 30, (255, 246, 220), lamps, 1.2)
+        d = ImageDraw.Draw(img)
+        for u, v, ph in s.motes:
+            x = u * W + 18 * math.sin(t * 0.5 + ph); y = ((v + t * 0.02) % 1.0) * 1480
+            d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(220, 220, 210, 110))
+        return img
