@@ -1,0 +1,10 @@
+__pycache__/
+*.mp4
+*.raw
+req.json
+list.txt
+preview.jpg
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/manifest.json
+graphify-out/cost.json
