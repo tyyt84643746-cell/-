@@ -260,3 +260,88 @@ def notebook(img, t, lines, y0=520, title=None):
 
 def written(p, x, y, text, k, size=54, col=INK):
     n = int(len(text) * clamp(k)); p.text(x, y, text[:n], hand(size), col)
+
+
+# ---- из серии 3: ключи, замки, дверь убежища, поле со складом, фургон, изба ----
+KEYC = (214, 180, 96); IRON = (86, 90, 102); IRON_D = (58, 60, 70)
+NAMES = ["Громов", "Савельев", "Вершинин"]
+
+
+def key(p, x, y, s=1.0, col=KEYC):
+    p.el(x - 34 * s, y - 110 * s, x + 34 * s, y - 42 * s, None, col, max(1, int(12 * s)))
+    p.line([(x, y - 42 * s), (x, y + 50 * s)], col, 12 * s)
+    p.line([(x, y + 20 * s), (x + 26 * s, y + 20 * s)], col, 10 * s); p.line([(x, y + 44 * s), (x + 20 * s, y + 44 * s)], col, 10 * s)
+
+
+def padlock(p, x, y, s, opened, name=None):
+    col = (150, 140, 110) if opened else (110, 96, 78)
+    if opened: p.arc(x - 40 * s, y - 150 * s, x + 40 * s, y - 50 * s, 150, 330, (150, 156, 172), 14 * s)
+    else: p.arc(x - 40 * s, y - 110 * s, x + 40 * s, y - 10 * s, 180, 360, (150, 156, 172), 14 * s)
+    p.rr(x - 62 * s, y - 60 * s, x + 62 * s, y + 60 * s, 14 * s, col)
+    p.circ(x, y - 8 * s, 14 * s, (30, 26, 26)); p.rr(x - 6 * s, y - 6 * s, x + 6 * s, y + 30 * s, 3 * s, (30, 26, 26))
+    for dx, dy in ((-40, -40), (40, 36)): p.circ(x + dx * s, y + dy * s, 8 * s, RUST)
+    if name: 
+        f = hand(int(44 * s)); tw = p.d.textlength(name, font=f) / p.k
+        p.text(x - tw / 2, y + 76 * s, name, f, (200, 190, 170))
+
+
+def iron_door(img, cx, top, w, h, locks, names=False, t=0.0):
+    p = P(img, 1.0)
+    p.rr(cx - w / 2 - 40, top - 40, cx + w / 2 + 40, top + h + 40, 16, (96, 98, 104))        # бетон
+    p.rr(cx - w / 2, top, cx + w / 2, top + h, 12, IRON)
+    p.rr(cx - w / 2 + 24, top + 24, cx + w / 2 - 24, top + h - 24, 8, None, IRON_D, 8)
+    for yy in (top + 60, top + h - 60):
+        for k in range(7): p.circ(cx - w / 2 + 60 + k * (w - 120) / 6, yy, 10, IRON_D)
+    for (x, y, r) in ((cx - w * 0.3, top + h * 0.3, 40), (cx + w * 0.25, top + h * 0.75, 54), (cx + w * 0.1, top + h * 0.2, 30)): p.circ(x, y, r, mixc(IRON, RUST, 0.55))
+    p.el(cx - 90, top + h * 0.38 - 90, cx + 90, top + h * 0.38 + 90, None, IRON_D, 18)          # штурвал
+    for a in range(0, 180, 45):
+        dx, dy = 84 * math.cos(math.radians(a)), 84 * math.sin(math.radians(a))
+        p.line([(cx - dx, top + h * 0.38 - dy), (cx + dx, top + h * 0.38 + dy)], IRON_D, 12)
+    ly = top + h * 0.72
+    for j, op in enumerate(locks):
+        x = cx + (j - 1) * w * 0.3
+        if op: glow(img, x, ly, 150, AMBER, 0.35)
+        elif op is False and locks.count(True) == 2: glow(img, x, ly, 150, RED, 0.3 + 0.2 * math.sin(t * 4))
+        padlock(P(img, 1.0), x, ly, 1.0, bool(op), NAMES[j] if names else None)
+
+
+class Field:
+    def __init__(s):
+        s.sky = vgrad(W, H, [(0, (6, 10, 26)), (0.5, (18, 26, 54)), (0.62, (40, 48, 80)), (1, (150, 160, 184))])
+        rnd = random.Random(7)
+        def bg(p):
+            for _ in range(70): p.circ(rnd.uniform(0, W), rnd.uniform(40, 900), rnd.uniform(1, 2.6), (170, 180, 210))
+            p.circ(840, 380, 70, (226, 230, 240)); p.circ(868, 366, 62, (10, 16, 36))
+            for k in range(36):
+                x = k * 34 + rnd.uniform(-10, 10); h = rnd.uniform(140, 260)
+                p.poly([(x - 56, 1150), (x + 56, 1150), (x, 1150 - h)], (14, 22, 40))
+            p.rect(0, 1140, W, H, (120, 132, 160))
+        s.sky.alpha_composite(layer(W, H, bg))
+        def barn(p):
+            p.poly([(180, 1320), (220, 980), (420, 1010), (400, 1320)], (60, 48, 44))               # уцелевшая стена
+            for y in range(1010, 1320, 50): p.line([(196, y), (410, y + 8)], (46, 36, 34), 5, round_caps=False)
+            for (a, b) in (((240, 990), (760, 1250)), ((300, 960), (640, 1300)), ((560, 1060), (900, 1290)), ((420, 1010), (980, 1180))):
+                p.line([a, b], (74, 58, 50), 26)
+                p.line([(a[0], a[1] - 12), (b[0], b[1] - 12)], SNOW, 8)
+            p.el(380, 1260, 1000, 1380, (150, 160, 184))
+        s.barn = layer(W, H, barn)
+        s.snow = Snow(60, 33, (2, 4), (40, 100))
+
+
+def van(p, x, y, s=1.0):
+    p.rr(x - 220 * s, y - 190 * s, x + 200 * s, y - 20 * s, 30 * s, (70, 80, 110))
+    p.rr(x + 60 * s, y - 170 * s, x + 180 * s, y - 100 * s, 14 * s, (150, 176, 210))
+    p.rr(x - 190 * s, y - 160 * s, x + 20 * s, y - 80 * s, 12 * s, (54, 62, 90))
+    p.circ(x - 130 * s, y - 20 * s, 40 * s, (18, 18, 24)); p.circ(x + 120 * s, y - 20 * s, 40 * s, (18, 18, 24))
+    p.line([(x - 100 * s, y - 190 * s), (x - 100 * s, y - 260 * s)], (150, 156, 172), 6 * s); p.chord(x - 150 * s, y - 300 * s, x - 50 * s, y - 230 * s, 0, 180, (150, 156, 172))
+
+
+class Room:
+    def __init__(s):
+        s.bg = vgrad(W, H, [(0, (44, 38, 44)), (1, (26, 22, 28))])
+        def deco(p):
+            for x in range(-40, W, 100): p.rect(x, 0, x + 94, 1480, (62, 50, 46))
+            p.rect(0, 1480, W, H, (40, 32, 32))
+            p.rr(120, 360, 420, 700, 8, (30, 30, 40)); p.rr(110, 350, 430, 710, 10, None, (110, 90, 70), 12)       # рамка с фото
+            p.el(220, 440, 320, 560, (90, 84, 80)); p.rr(190, 560, 350, 690, 30, (70, 66, 64))
+        s.bg.alpha_composite(layer(W, H, deco))

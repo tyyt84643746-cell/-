@@ -142,6 +142,40 @@ def kolyan(base, x, y, size, t, dark=1.0, rec=True, phone_up=True, serious=False
     return {"phone": (x + 78 * size, y + (-450 + by) * size)}
 
 
+def nina(base, x, y, size, t, look=0.0, dark=1.0, key_up=0.0):
+    """Нина Вершинина, 80 лет: седой пучок, очки, сиреневая кофта, шаль."""
+    S = 2.0 * size; cw, ch = 420, 620
+    img = Image.new("RGBA", (int(cw * S), int(ch * S)), (0, 0, 0, 0))
+    p = P(img, S, ox=210, oy=600)
+    by = -2 * math.sin(t * 1.7 + 0.9)
+    LIL = (128, 110, 150); LILD = (104, 88, 126)
+    p.el(-80, -12, 80, 12, (0, 0, 0, 80))
+    for side in (-1, 1): p.rr(side * 24 - 20, -70, side * 24 + 20, 4, 14, (60, 54, 60))
+    p.rr(-60, -210, 60, -60, 28, (70, 66, 80))
+    p.rr(-68, -360 + by, 68, -180, 42, LIL); p.rr(28, -360 + by, 68, -180, 38, LILD)
+    for yy in (-320, -270, -220): p.circ(0, yy + by, 6, (220, 214, 230))
+    p.poly([(-84, -350 + by), (84, -350 + by), (60, -270 + by), (0, -240 + by), (-60, -270 + by)], (150, 150, 160))   # шаль
+    p.line([(-62, -340 + by), (-72, -226 + by)], LIL, 30); p.circ(-72, -222 + by, 14, SKIN)
+    if key_up > 0:
+        hx, hy = 62 + 40 * key_up, -230 - 150 * key_up + by
+        p.line([(62, -340 + by), (hx, hy)], LIL, 30); p.circ(hx, hy, 14, SKIN)
+    else:
+        p.line([(62, -340 + by), (72, -226 + by)], LIL, 30); p.circ(72, -222 + by, 14, SKIN)
+    p.circ(0, -548 + by, 34, (226, 226, 232))                                    # пучок
+    p.el(-62, -510 + by, 62, -372 + by, SKIN)
+    p.chord(-66, -530 + by, 66, -430 + by, 180, 360, (232, 232, 238))
+    lx = look * 12
+    for sx in (-24, 24):
+        p.el(sx - 18 + lx, -468 + by, sx + 18 + lx, -432 + by, None, (90, 80, 100), 4)
+        if ((t + 1.1) % 4.6) < 0.14: p.line([(sx - 6 + lx, -450 + by), (sx + 6 + lx, -450 + by)], EYE, 4)
+        else: p.circ(sx + lx, -450 + by, 6.5, EYE)
+    p.line([(-6 + lx, -450 + by), (6 + lx, -450 + by)], (90, 80, 100), 4)
+    p.arc(-12 + lx, -420 + by, 12 + lx, -404 + by, 20, 160, (150, 96, 90), 4)
+    p.line([(-40, -424 + by), (-30, -418 + by)], (214, 170, 140), 3); p.line([(30, -418 + by), (40, -424 + by)], (214, 170, 140), 3)
+    _finish(base, img, size, cw, ch, 210, 600, x, y, dark)
+    return {"hand": (x + (62 + 40 * key_up) * size, y + (-230 - 150 * key_up + by) * size)}
+
+
 def silhouette(p, x, y, s, col, hat=None):
     p.rr(x - 50 * s, y - 330 * s, x + 50 * s, y, 34 * s, col)
     p.el(x - 38 * s, y - 420 * s, x + 38 * s, y - 330 * s, mixc(col, (255, 255, 255), 0.08))
