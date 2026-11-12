@@ -212,6 +212,53 @@ def kirill(base, x, y, size, t, look=0.0, dark=1.0, lantern=True, mouth="flat"):
     return {"lantern": (x + 112 * size, y + (-220 + by) * size)}
 
 
+def girl(base, x, y, size, t, look=0.0, dark=1.0, smile=False):
+    """Соня, 6 лет: приглушённо-розовое пальто, белая шапка с помпоном, игрушечный заяц."""
+    S = 2.0 * size; cw, ch = 360, 460
+    img = Image.new("RGBA", (int(cw * S), int(ch * S)), (0, 0, 0, 0))
+    p = P(img, S, ox=180, oy=440)
+    by = -2.5 * math.sin(t * 2.6 + 0.2)
+    CO = (170, 112, 122); COD = (146, 92, 104)
+    p.el(-66, -10, 66, 10, (0, 0, 0, 80))
+    for side in (-1, 1): p.rr(side * 22 - 16, -90, side * 22 + 16, 2, 12, (70, 66, 80)); 
+    p.rr(-56, -250 + by, 56, -70, 36, CO); p.rr(22, -250 + by, 56, -70, 30, COD)
+    p.line([(-50, -232 + by), (-64, -130 + by)], CO, 26); p.circ(-64, -126 + by, 12, SKIN)
+    p.line([(50, -232 + by), (70, -150 + by)], CO, 26)
+    p.rr(60, -200 + by, 104, -110 + by, 18, (214, 208, 200)); p.el(62, -240 + by, 82, -180 + by, (214, 208, 200)); p.el(84, -240 + by, 104, -180 + by, (214, 208, 200))  # заяц
+    p.circ(74, -160 + by, 4, EYE); p.circ(92, -160 + by, 4, EYE); p.circ(70, -146 + by, 12, SKIN)
+    p.el(-70, -390 + by, 70, -250 + by, SKIN)
+    p.chord(-74, -426 + by, 74, -290 + by, 180, 360, (232, 232, 236)); p.rr(-76, -372 + by, 76, -346 + by, 12, (214, 214, 222)); p.circ(0, -432 + by, 20, (232, 232, 236))
+    lx = look * 12
+    for sx in (-26, 26):
+        if ((t + 2.4) % 3.1) < 0.13: p.line([(sx - 8 + lx, -316 + by), (sx + 8 + lx, -316 + by)], EYE, 5)
+        else: p.circ(sx + lx, -316 + by, 9, EYE)
+    p.el(-56 + lx * 0.4, -306 + by, -34 + lx * 0.4, -290 + by, CHEEK); p.el(34 + lx * 0.4, -306 + by, 56 + lx * 0.4, -290 + by, CHEEK)
+    if smile: p.arc(-14 + lx, -298 + by, 14 + lx, -276 + by, 20, 160, EYE, 4)
+    _finish(base, img, size, cw, ch, 180, 440, x, y, dark)
+
+
+def mother(base, x, y, size, t, look=0.0, dark=1.0):
+    """Мама Сони: тёмно-синее пальто, серый шарф, волосы собраны."""
+    S = 2.0 * size; cw, ch = 420, 660
+    img = Image.new("RGBA", (int(cw * S), int(ch * S)), (0, 0, 0, 0))
+    p = P(img, S, ox=210, oy=640)
+    by = -2.5 * math.sin(t * 2.0 + 1.8)
+    CO = (58, 70, 104)
+    p.el(-84, -12, 84, 12, (0, 0, 0, 80))
+    for side in (-1, 1): p.rr(side * 26 - 18, -120, side * 26 + 18, 2, 14, (36, 38, 48))
+    p.rr(-66, -390 + by, 66, -100, 44, CO); p.rr(28, -390 + by, 66, -100, 38, (46, 56, 86))
+    p.line([(-60, -366 + by), (-74, -226 + by)], CO, 30); p.circ(-74, -222 + by, 14, SKIN)
+    p.line([(60, -366 + by), (74, -226 + by)], CO, 30); p.circ(74, -222 + by, 14, SKIN)
+    p.rr(-50, -420 + by, 50, -370 + by, 22, (150, 150, 158))
+    p.el(-74, -560 + by, 74, -396 + by, (70, 50, 40)); p.circ(0, -574 + by, 30, (70, 50, 40))
+    p.el(-66, -540 + by, 66, -400 + by, SKIN); p.chord(-70, -556 + by, 70, -470 + by, 180, 360, (70, 50, 40))
+    lx = look * 12
+    for sx in (-26, 26): p.circ(sx + lx, -470 + by, 8, EYE)
+    p.line([(-40 + lx, -488 + by), (-16 + lx, -494 + by)], BROW, 5); p.line([(16 + lx, -494 + by), (40 + lx, -488 + by)], BROW, 5)
+    p.line([(-10 + lx, -432 + by), (10 + lx, -432 + by)], (120, 70, 66), 5)
+    _finish(base, img, size, cw, ch, 210, 640, x, y, dark)
+
+
 def silhouette(p, x, y, s, col, hat=None):
     p.rr(x - 50 * s, y - 330 * s, x + 50 * s, y, 34 * s, col)
     p.el(x - 38 * s, y - 420 * s, x + 38 * s, y - 330 * s, mixc(col, (255, 255, 255), 0.08))

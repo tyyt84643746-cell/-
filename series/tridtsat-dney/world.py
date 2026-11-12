@@ -390,3 +390,40 @@ class Shelter:
             x = u * W + 18 * math.sin(t * 0.5 + ph); y = ((v + t * 0.02) % 1.0) * 1480
             d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(220, 220, 210, 110))
         return img
+
+
+def cage(p, x0, y0, x1, y1, col=(120, 124, 136)):
+    p.rr(x0, y0, x1, y1, 8, None, col, 12)
+    for x in range(int(x0) + 50, int(x1), 50): p.line([(x, y0), (x, y1)], col, 5, round_caps=False)
+    for y in range(int(y0) + 60, int(y1), 60): p.line([(x0, y), (x1, y)], col, 5, round_caps=False)
+
+
+def stash(p, t=0.0):
+    """Склад Кирилла: генератор, фильтры, вода, коробки с едой."""
+    p.rr(110, 1180, 420, 1440, 16, (200, 150, 50)); p.rr(140, 1210, 390, 1300, 8, (40, 40, 46)); p.rr(200, 1130, 330, 1186, 14, None, (40, 40, 46), 12)
+    p.circ(170, 1380, 22, (40, 40, 46)); p.circ(360, 1380, 22, (220, 60, 50))
+    for k in range(3): box(p, 460 + k * 8, 1440 - k * 150, 250, 140, "ФИЛЬТР", (176, 180, 190))
+    for k in range(4):
+        p.rr(740 + k * 62, 1240, 792 + k * 62, 1440, 14, (80, 140, 200)); p.rr(752 + k * 62, 1222, 780 + k * 62, 1242, 5, (40, 80, 150))
+    for r in range(3):
+        for k in range(3): box(p, 730 + k * 96, 1220 - r * 110, 90, 100, None, (150, 116, 80))
+
+
+def radio(img, cx, cy, s, t, on=True):
+    """Старый ламповый приёмник."""
+    p = P(img, 1.0)
+    p.rr(cx - 330 * s, cy - 200 * s, cx + 330 * s, cy + 200 * s, 40 * s, (110, 78, 54)); p.rr(cx - 300 * s, cy - 170 * s, cx + 300 * s, cy + 170 * s, 26 * s, (130, 94, 64))
+    p.rr(cx - 270 * s, cy - 140 * s, cx + 20 * s, cy + 140 * s, 18 * s, (84, 66, 50))
+    for k in range(7): p.line([(cx - 250 * s, cy - 110 * s + k * 36 * s), (cx, cy - 110 * s + k * 36 * s)], (60, 46, 36), 10 * s, round_caps=False)
+    p.rr(cx + 60 * s, cy - 140 * s, cx + 270 * s, cy - 20 * s, 12 * s, (255, 220, 150) if on else (70, 60, 50))
+    if on:
+        nx = cx + (165 + 80 * math.sin(t * 0.7)) * s; p.line([(nx, cy - 132 * s), (nx, cy - 28 * s)], (200, 50, 40), 6 * s, round_caps=False)
+        for k in range(9): p.line([(cx + (80 + k * 22) * s, cy - 130 * s), (cx + (80 + k * 22) * s, cy - 104 * s)], (120, 90, 50), 3 * s, round_caps=False)
+    for dx in (110, 220): p.circ(cx + dx * s, cy + 80 * s, 38 * s, (60, 46, 36)); 
+    for dx in (110, 220): p.circ(cx + dx * s, cy + 80 * s, 26 * s, (150, 130, 100))
+    if on:
+        glow(img, cx + 165 * s, cy - 80 * s, 260 * s, AMBER, 0.4 + 0.1 * math.sin(t * 9))
+        d = ImageDraw.Draw(img)
+        for k in range(3):
+            r = (((t * 0.9 + k / 3) % 1.0) * 260 + 60) * s; a = int(150 * (1 - ((t * 0.9 + k / 3) % 1.0)))
+            d.arc([cx - 135 * s - r, cy - r, cx - 135 * s + r, cy + r], 150, 210, fill=(255, 226, 170, a), width=int(8 * s))
