@@ -104,7 +104,8 @@ def audio():
     def chime(at):
         for f in (2100, 2600, 3200): add(0.16 * np.sin(2 * np.pi * f * T(0.5)) * np.exp(-T(0.5) * 7), at + (f - 2100) / 9000)
     def pencil(at, d=0.9): add(lp(noise(d), 0.6) * 0.1 * (0.5 + 0.5 * np.sin(2 * np.pi * 9 * T(d))), at)
-    def click(at): add(0.5 * noise(0.05) * np.exp(-T(0.05) * 120) + 0.3 * np.sin(2 * np.pi * 900 * T(0.08)) * np.exp(-T(0.08) * 40), at)
+    def click(at):
+        add(0.5 * noise(0.05) * np.exp(-T(0.05) * 120), at); add(0.3 * np.sin(2 * np.pi * 900 * T(0.08)) * np.exp(-T(0.08) * 40), at)
     tick = 0.25 * np.sin(2 * np.pi * 2400 * T(0.02)) * np.exp(-T(0.02) * 300)
     blip = 0.2 * np.sin(2 * np.pi * 1320 * T(0.09)) * np.exp(-T(0.09) * 30)
     for i in range(N):
