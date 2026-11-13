@@ -14,6 +14,7 @@ COL = dict(
     sonya=_c((232, 140, 170), (240, 240, 244), (90, 80, 110)),
     mother=_c((44, 54, 96), (120, 124, 136), (36, 40, 60)),
     stranger=_c((30, 30, 36), (22, 22, 26), (24, 24, 30)),
+    guest=_c((98, 104, 114), (52, 46, 44), (44, 46, 54)),
 )
 _CROWD = [((96, 78, 70), (60, 66, 90)), ((70, 84, 100), (120, 70, 60)), ((110, 96, 80), (50, 60, 56)), ((80, 70, 96), (90, 96, 110)),
           ((66, 90, 84), (36, 40, 52)), ((120, 84, 70), (70, 74, 60)), ((84, 88, 100), (150, 120, 70)), ((100, 70, 76), (44, 48, 70))]
@@ -26,6 +27,7 @@ def kirill(root, t, **kw): return person(root, t, colors=COL["kirill"], beard=rg
 def sonya(root, t, **kw): return person(root, t, colors=COL["sonya"], scale=0.58, **kw)
 def mother(root, t, **kw): return person(root, t, colors=COL["mother"], hat="scarf", **kw)
 def stranger(root, t, **kw): return person(root, t, colors=dict(COL["stranger"], skin=rgb((84, 70, 66))), face=False, **kw)
+def guest(root, t, **kw): return person(root, t, colors=COL["guest"], beard=rgb((150, 150, 156)), **kw)
 def villager(j, root, t, **kw):
     b, h = _CROWD[j % len(_CROWD)]
     return person(root, t, colors=_c(b, h), hat=("beanie", "scarf", "pompom")[j % 3], scale=0.92 + 0.05 * (j % 4), **kw)
@@ -105,3 +107,35 @@ def phone(m, on=True):
 def radio(m):
     return [box(m @ S(0.5, 0.3, 0.18), rgb((120, 60, 50))), box(m @ T(-0.1, 0, 0.095) @ S(0.22, 0.2, 0.01), rgb((30, 30, 34)), cast=False),
             cyl(m @ T(0.2, 0.4, 0) @ Rz(-0.3) @ S(0.02, 0.6, 0.02), C["metal"])]
+
+
+def envelope(m):
+    return [box(m @ S(0.3, 0.2, 0.012), rgb((238, 232, 214)), emit=0.25), box(m @ T(0, 0.03, 0.008) @ S(0.3, 0.012, 0.004), rgb((170, 160, 140)), cast=False)]
+
+def city(seed=4):
+    """Пустая улица города вдоль оси Z: дома без света, машина под снегом, следы."""
+    rnd = random.Random(seed); it = [box(T(0, -0.25, -40) @ S(200, 0.5, 240), C["snow"])]
+    it.append(box(T(0, 0.012, -40) @ S(9, 0.02, 240), rgb((190, 198, 218)), cast=False))
+    for side in (-1, 1):
+        z = 16.0
+        while z > -120:
+            w = rnd.uniform(9, 14); h = rnd.uniform(11, 26); d = rnd.uniform(8, 12); x = side * (9 + d / 2 + rnd.uniform(0, 2))
+            col = rgb(rnd.choice(((108, 112, 126), (124, 116, 110), (96, 104, 112), (130, 126, 134))))
+            it.append(box(T(x, h / 2, z - w / 2) @ S(d, h, w), col))
+            it.append(box(T(x, h + 0.2, z - w / 2) @ S(d + 0.3, 0.4, w + 0.3), C["snow"]))
+            fx = x - side * (d / 2 + 0.02)
+            for fy in range(int(h // 3)):
+                for fz in range(int(w // 3)):
+                    it.append(box(T(fx, 2.2 + fy * 3, z - 1.8 - fz * 3) @ S(0.04, 1.5, 1.6), rgb((20, 24, 36)), cast=False))
+            z -= w + rnd.uniform(1.5, 4)
+    for z in range(8, -100, -14):                                              # погасшие фонари
+        for side in (-1, 1):
+            it.append(cyl(T(side * 5.4, 3, z) @ S(0.14, 6, 0.14), C["dark"])); it.append(box(T(side * 4.8, 6, z) @ S(1.3, 0.12, 0.2), C["dark"]))
+    car = T(2.6, 0, -6) @ Ry(0.12)
+    it += [box(car @ T(0, 0.55, 0) @ S(1.8, 0.7, 4.2), rgb((120, 40, 40))), box(car @ T(0, 1.2, -0.2) @ S(1.6, 0.7, 2.2), rgb((30, 34, 46))),
+           ball(car @ T(0, 1.55, -0.2) @ S(1.9, 0.5, 2.6), C["snow"]), ball(car @ T(0, 0.92, 1.5) @ S(1.8, 0.3, 1.3), C["snow"])]
+    for k in range(70):                                                         # следы уходят вдаль
+        for lane, ph in ((-1.6, 0.0), (-0.4, 1.3), (0.9, 2.1)):
+            x = lane + 0.5 * math.sin(k * 0.21 + ph) + (0.16 if k % 2 else -0.16)
+            it.append(box(T(x, 0.025, 10 - k * 0.75 - ph) @ S(0.18, 0.02, 0.36), rgb((150, 158, 182)), cast=False))
+    return it

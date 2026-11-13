@@ -45,6 +45,7 @@ def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, c
         elif arm == "phone" and k < 0: rx, rz = -1.15 + 0.03 * math.sin(t * 1.7), -0.3
         elif arm == "point" and k < 0: rx, rz = -2.45 + 0.04 * math.sin(t * 3), -0.5
         elif arm == "hold": rx = -0.75
+        elif arm == "hands_up": rz = (2.6 + 0.04 * math.sin(t * 5)) * (1 if k < 0 else -1)
         sh = torso @ T(sx, 0.34, 0) @ Rz(rz) @ Rx(rx)
         it.append(box(sh @ T(0, -0.34, 0) @ S(0.18, 0.72, 0.2), col["body"]))
         it.append(ball(sh @ T(0, -0.74, 0) @ S(0.16), col["skin"]))
