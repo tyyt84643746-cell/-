@@ -139,7 +139,7 @@ class Show:
         img = (img * s.VIG).astype("u1")
         gt = s.STARTS[si] + t
         im = Image.fromarray(img).convert("RGBA"); ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
-        for x, y, v, r in s.SNOW:
+        for x, y, v, r in (s.SNOW if sp.get("snow", True) else ()):
             yy = (y * H + v * gt) % H; xx = (x * W + 24 * math.sin(gt * 0.7 + y * 9)) % W
             d.ellipse([xx - r, yy - r, xx + r, yy + r], fill=(240, 244, 252, 200))
         ep.overlay(s, si, t, d)
