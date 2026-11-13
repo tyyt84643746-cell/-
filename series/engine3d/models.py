@@ -17,7 +17,7 @@ def cone(m, col, emit=0.0, cast=True): return ("cone", m, col, emit, cast)
 def prism(m, col, emit=0.0, cast=True): return ("prism", m, col, emit, cast)
 
 
-def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, colors=None, face=True, mouth=None, hat="beanie", scale=1.0):
+def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, colors=None, face=True, mouth=None, hat="beanie", scale=1.0, out=None, beard=None, skirt=None):
     """Стилизованный человек (голова крупная). root — 4x4 (позиция ног, поворот). arm: None | 'dig' | 'wave' | 'up'."""
     col = dict(body=C["yellow"], body_d=C["yellow_d"], legs=C["pants"], hat=C["beanie"], hat_b=C["beanie_b"], pack=C["pack"], skin=C["skin"])
     if colors: col.update(colors)
@@ -38,19 +38,35 @@ def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, c
     it.append(box(torso @ T(0, 0, 0.212) @ S(0.03, 0.8, 0.01), col["body_d"]))
     if col["pack"] is not None: it.append(box(torso @ T(0, 0.06, -0.32) @ S(0.5, 0.62, 0.24), col["pack"]))
     for sx, k in ((-0.42, 1), (0.42, -1)):
-        if arm == "dig": a = -0.9 + 0.35 * math.sin(t * 4.5)
-        elif arm == "wave" and k < 0: a = math.pi * 0.85 + 0.25 * math.sin(t * 9)
-        elif arm == "up" and k < 0: a = math.pi * 0.9
-        else: a = -sw * k
-        sh = torso @ T(sx, 0.34, 0) @ Rx(-a if arm in ("dig",) else 0) @ Rz(a * (1 if k < 0 else -1) if arm in ("wave", "up") and k < 0 else 0) @ Rx(-a if arm not in ("dig", "wave", "up") else 0)
+        rx, rz = sw * k, 0.0
+        if arm == "dig": rx = 0.9 - 0.35 * math.sin(t * 4.5)
+        elif arm == "wave" and k < 0: rz = math.pi * 0.85 + 0.25 * math.sin(t * 9)
+        elif arm == "up" and k < 0: rz = math.pi * 0.9
+        elif arm == "phone" and k < 0: rx, rz = -1.15 + 0.03 * math.sin(t * 1.7), -0.3
+        elif arm == "point" and k < 0: rx, rz = -2.45 + 0.04 * math.sin(t * 3), -0.5
+        elif arm == "hold": rx = -0.75
+        sh = torso @ T(sx, 0.34, 0) @ Rz(rz) @ Rx(rx)
         it.append(box(sh @ T(0, -0.34, 0) @ S(0.18, 0.72, 0.2), col["body"]))
         it.append(ball(sh @ T(0, -0.74, 0) @ S(0.16), col["skin"]))
+        if out is not None and k < 0: out["hand"] = sh @ T(0, -0.74, 0)
     it.append(box(torso @ T(0, 0.45, -0.08) @ S(0.5, 0.14, 0.3), col["body_d"]))
     head = B @ T(0, 2.02 + breath * 1.5, 0) @ Ry(look * 0.6)
     it.append(ball(head @ S(0.64, 0.62, 0.6), col["skin"]))
     if hat == "beanie":
         it.append(ball(head @ T(0, 0.17, -0.02) @ S(0.68, 0.5, 0.64), col["hat"]))
         it.append(cyl(head @ T(0, 0.13, -0.01) @ S(0.69, 0.1, 0.65), col["hat_b"]))
+    elif hat == "pompom":
+        it.append(ball(head @ T(0, 0.17, -0.02) @ S(0.68, 0.5, 0.64), col["hat"]))
+        it.append(cyl(head @ T(0, 0.13, -0.01) @ S(0.69, 0.1, 0.65), col["hat_b"]))
+        it.append(ball(head @ T(0, 0.46, -0.02) @ S(0.2), C["cat_w"]))
+    elif hat == "scarf":
+        it.append(ball(head @ T(0, 0.07, -0.09) @ S(0.74, 0.68, 0.62), col["hat"]))
+        it.append(ball(head @ T(0, -0.3, 0.2) @ S(0.2, 0.14, 0.14), col["hat_b"]))
+    elif hat == "bun":
+        it.append(ball(head @ T(0, 0.12, -0.08) @ S(0.68, 0.54, 0.58), col["hat"]))
+        it.append(ball(head @ T(0, 0.2, -0.34) @ S(0.24), col["hat"]))
+    if beard is not None: it.append(ball(head @ T(0, -0.2, 0.17) @ S(0.44, 0.3, 0.3), beard))
+    if skirt is not None: it.append(box(B @ T(0, 0.6, 0) @ S(0.62, 0.62, 0.42), skirt))
     if lamp:
         it.append(cyl(head @ T(0, 0.14, 0.32) @ Rx(math.pi / 2) @ S(0.1, 0.05, 0.1), C["lamp"], emit=3.0, cast=False))
     if face:

@@ -10,3 +10,7 @@ graphify-out/manifest.json
 graphify-out/cost.json
 final_sheet.jpg
 audio.raw
+seg*.mp4
+frame.jpg
+sheet*.jpg
+qa/
