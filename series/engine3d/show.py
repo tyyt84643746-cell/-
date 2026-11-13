@@ -110,7 +110,8 @@ class Show:
             else:
                 d.rounded_rectangle([cx - 66 * r, cy - 52 * r, cx + 66 * r, cy + 34 * r], radius=24, fill=c + (A,)); d.polygon([(cx - 30, cy + 30 * r), (cx - 6, cy + 30 * r), (cx - 34, cy + 62 * r)], fill=c + (A,))
                 for dx in (-30, 0, 30): d.ellipse([cx + dx - 9, cy - 18, cx + dx + 9, cy], fill=(255, 255, 255, A))
-            d.text((x, y + 205 + dy), ("ЛАЙК — " if j == 0 else "КОММЕНТ — ") + label, font=font(36), fill=(255, 255, 255, A), anchor="mm")
+            txt = ("ЛАЙК — " if j == 0 else "КОММЕНТ — ") + label
+            d.text((x, y + 205 + dy), txt, font=font(36 if len(txt) <= 16 else 30), fill=(255, 255, 255, A), anchor="mm")
 
     def _glow(s, img, x, y, r, col, k):
         r = int(r)
@@ -132,6 +133,9 @@ class Show:
         for pt, col, r, k in sp.get("glows", ()):
             x, y, ok = project(pt, sp["eye"], sp["tgt"], sp.get("fov", 42))
             if ok: s._glow(img, x, y, r, col, k)
+        if sp.get("sepia"):
+            g = img @ np.array([0.3, 0.59, 0.11], "f4"); k = sp["sepia"]
+            img = img * (1 - k) + np.clip(g[..., None] * np.array([1.12, 0.96, 0.74], "f4") + 8, 0, 255) * k
         img = (img * s.VIG).astype("u1")
         gt = s.STARTS[si] + t
         im = Image.fromarray(img).convert("RGBA"); ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)

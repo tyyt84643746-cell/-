@@ -14,6 +14,7 @@ COL = dict(
     sonya=_c((232, 140, 170), (240, 240, 244), (90, 80, 110)),
     mother=_c((44, 54, 96), (120, 124, 136), (36, 40, 60)),
     stranger=_c((30, 30, 36), (22, 22, 26), (24, 24, 30)),
+    ded=_c((112, 104, 92), (70, 60, 50), (60, 56, 52)),
     guest=_c((98, 104, 114), (52, 46, 44), (44, 46, 54)),
 )
 _CROWD = [((96, 78, 70), (60, 66, 90)), ((70, 84, 100), (120, 70, 60)), ((110, 96, 80), (50, 60, 56)), ((80, 70, 96), (90, 96, 110)),
@@ -27,6 +28,7 @@ def kirill(root, t, **kw): return person(root, t, colors=COL["kirill"], beard=rg
 def sonya(root, t, **kw): return person(root, t, colors=COL["sonya"], scale=0.58, **kw)
 def mother(root, t, **kw): return person(root, t, colors=COL["mother"], hat="scarf", **kw)
 def stranger(root, t, **kw): return person(root, t, colors=dict(COL["stranger"], skin=rgb((84, 70, 66))), face=False, **kw)
+def ded(root, t, **kw): return person(root, t, colors=COL["ded"], **kw)
 def guest(root, t, **kw): return person(root, t, colors=COL["guest"], beard=rgb((150, 150, 156)), **kw)
 def villager(j, root, t, **kw):
     b, h = _CROWD[j % len(_CROWD)]

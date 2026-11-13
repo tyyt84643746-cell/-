@@ -39,7 +39,7 @@ def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, c
     if col["pack"] is not None: it.append(box(torso @ T(0, 0.06, -0.32) @ S(0.5, 0.62, 0.24), col["pack"]))
     for sx, k in ((-0.42, 1), (0.42, -1)):
         rx, rz = sw * k, 0.0
-        if arm == "dig": rx = 0.9 - 0.35 * math.sin(t * 4.5)
+        if arm == "dig": rx = -0.9 + 0.35 * math.sin(t * 4.5)
         elif arm == "wave" and k < 0: rz = math.pi * 0.85 + 0.25 * math.sin(t * 9)
         elif arm == "up" and k < 0: rz = math.pi * 0.9
         elif arm == "phone" and k < 0: rx, rz = -1.15 + 0.03 * math.sin(t * 1.7), -0.3
