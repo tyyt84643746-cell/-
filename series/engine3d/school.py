@@ -166,3 +166,42 @@ def key(glint=1.0):
     return [box(T(33.0, 1.6, -1.95) @ S(0.1, 0.24, 0.02), rgb((230, 190, 70)), emit=0.8 * glint, cast=False), ball(T(33.0, 1.74, -1.95) @ S(0.12, 0.12, 0.03), rgb((230, 190, 70)), emit=0.8 * glint, cast=False)]
 JANITOR = _c((96, 100, 92), (120, 120, 120), (60, 62, 60), skin=(190, 186, 166))
 def janitor(root, t, **kw): return person(root, t, colors=JANITOR, hat="bald", **kw)
+
+STEP_N, STEP_H, STEP_D = 16, 0.22, 0.32
+def stairs():
+    """Лестница на крышу: x 40..42, снизу (z=4.2) вверх по -z, площадка и дверь на крышу у z=-3.1."""
+    W_ = rgb((176, 180, 170)); it = [box(T(41, -0.1, 1) @ S(2.4, 0.2, 10), rgb((130, 130, 126)), cast=False)]
+    for i in range(STEP_N):
+        top = (i + 1) * STEP_H; z = 4.2 - i * STEP_D
+        it.append(box(T(41, top / 2, z) @ S(1.9, top, STEP_D), rgb((150, 146, 140)) if i % 2 else rgb((160, 156, 150))))
+    LH = STEP_N * STEP_H
+    it.append(box(T(41, LH / 2, -2.0) @ S(1.9, LH, 2.2), rgb((150, 146, 140))))
+    for x in (39.95, 42.05): it.append(box(T(x, 3.0, 0.5) @ S(0.1, 7.0, 7.8), W_, cast=False))
+    it.append(box(T(41, 3.0, -3.45) @ S(2.2, 7.0, 0.1), W_, cast=False)); it.append(box(T(41, 6.5, 0.5) @ S(2.2, 0.1, 7.8), W_, cast=False))
+    for i in range(0, STEP_N, 2): it.append(box(T(41.85, (i + 1) * STEP_H + 0.9, 4.2 - i * STEP_D) @ S(0.05, 0.05, 0.7), METAL))   # перила
+    it.append(ball(T(41, 6.3, -1.8) @ S(0.3), rgb((255, 230, 170)), emit=4.0, cast=False))
+    return it
+STAIR_TOP = STEP_N * STEP_H
+def stair_pos(s): return 4.2 - s * (STEP_N - 0.5) * STEP_D, s * STAIR_TOP
+def roof_door(a=0.0):
+    m = T(41.9, STAIR_TOP, -3.1) @ Ry(a) @ T(-0.9, 0, 0)
+    return [box(m @ T(0, 1.15, 0) @ S(1.7, 2.3, 0.08), rgb((90, 96, 104))), box(m @ T(0.6, 1.1, 0.06) @ S(0.08, 0.08, 0.06), METAL)]
+def padlock(open_=0.0):
+    p = (41.0, STAIR_TOP + 1.15, -3.0)
+    return [box(T(*p) @ S(0.22, 0.2, 0.08), rgb((200, 170, 70))), box(T(p[0], p[1] + 0.16 + 0.12 * open_, p[2]) @ S(0.16, 0.14, 0.03), METAL)]
+
+def roof_set(t):
+    """Крыша школы (y=0), двор внизу (y=-8), город с дымом вдали."""
+    r = random.Random(4); it = [box(T(60, -0.15, 0) @ S(16, 0.3, 16), rgb((96, 96, 100)), cast=False)]
+    for (x, z, sx, sz) in ((60, -8, 16, 0.4), (60, 8, 16, 0.4), (52, 0, 0.4, 16), (68, 0, 0.4, 16)): it.append(box(T(x, 0.45, z) @ S(sx, 0.9, sz), rgb((170, 156, 132))))
+    it.append(box(T(56, 1.3, 3) @ S(2.4, 2.6, 2.4), rgb((180, 168, 148)))); it.append(box(T(56, 1.15, 4.22) @ S(1.4, 2.3, 0.05), rgb((255, 240, 200)), emit=0.6, cast=False))   # будка выхода
+    for (x, z) in ((63, -3), (64, 2), (58, -5)): it.append(cyl(T(x, 0.5, z) @ S(0.8, 1.0, 0.8), METAL))
+    it.append(box(T(60, -8.1, 0) @ S(200, 0.2, 200), rgb((120, 120, 118)), cast=False)); it.append(box(T(60, -4, 0) @ S(15.6, 8, 15.6), rgb((200, 186, 160))))
+    for k in range(22):
+        x = 90 + r.uniform(0, 70); z = r.uniform(-60, 60); h = r.uniform(8, 30)
+        it.append(box(T(x, h / 2 - 8, z) @ S(r.uniform(6, 12), h, r.uniform(6, 12)), rgb((150, 150, 160)) if k % 2 else rgb((130, 132, 146))))
+    for c, (sx, sz) in enumerate(((120, -20), (140, 25), (105, 10))):
+        for k in range(14):
+            ph = (t * 0.12 + k / 14 + c * 0.3) % 1.0
+            it.append(ball(T(sx + 6 * ph + 2 * math.sin(k), 10 + ph * 40, sz + 3 * math.cos(k)) @ S(4 + ph * 12), rgb((60, 58, 60)), cast=False))
+    return it
