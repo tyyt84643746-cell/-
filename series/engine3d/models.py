@@ -45,6 +45,8 @@ def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, c
         elif arm == "phone" and k < 0: rx, rz = -1.15 + 0.03 * math.sin(t * 1.7), -0.3
         elif arm == "point" and k < 0: rx, rz = -2.45 + 0.04 * math.sin(t * 3), -0.5
         elif arm == "hold": rx = -0.75
+        elif arm == "zombie": rx, rz = -1.4 + 0.1 * math.sin(t * 2.1 + k), 0.08 * k
+        elif arm == "push": rx = -1.25 + 0.06 * math.sin(t * 6 + k)
         elif arm == "hands_up": rz = (2.6 + 0.04 * math.sin(t * 5)) * (1 if k < 0 else -1)
         sh = torso @ T(sx, 0.34, 0) @ Rz(rz) @ Rx(rx)
         it.append(box(sh @ T(0, -0.34, 0) @ S(0.18, 0.72, 0.2), col["body"]))
@@ -63,6 +65,11 @@ def person(root, t, walk=None, look=0.0, blink_seed=0.0, lamp=False, arm=None, c
     elif hat == "scarf":
         it.append(ball(head @ T(0, 0.07, -0.09) @ S(0.74, 0.68, 0.62), col["hat"]))
         it.append(ball(head @ T(0, -0.3, 0.2) @ S(0.2, 0.14, 0.14), col["hat_b"]))
+    elif hat == "hair":
+        it.append(ball(head @ T(0, 0.13, -0.05) @ S(0.67, 0.48, 0.62), col["hat"]))
+        it.append(ball(head @ T(0, 0.2, 0.14) @ S(0.5, 0.18, 0.3), col["hat"]))
+    elif hat == "bald":
+        pass
     elif hat == "bun":
         it.append(ball(head @ T(0, 0.12, -0.08) @ S(0.68, 0.54, 0.58), col["hat"]))
         it.append(ball(head @ T(0, 0.2, -0.34) @ S(0.24), col["hat"]))

@@ -1,0 +1,138 @@
+"""Сериал «Последний урок»: школа (класс на 2 этаже, коридор, двор) и персонажи."""
+import math, random
+from models import *
+PI = math.pi
+
+def _c(body, hair, legs=(48, 56, 84), pack=None, skin=(241, 203, 168)):
+    b = rgb(body); h = rgb(hair)
+    return dict(body=b, body_d=tuple(v * 0.7 for v in b), hat=h, hat_b=h, legs=rgb(legs), pack=pack, skin=rgb(skin))
+
+MAX = _c((214, 52, 48), (52, 36, 28), pack=rgb((70, 74, 86)))            # Макс: красная толстовка — единственный яркий цвет
+LIZA = _c((70, 120, 120), (200, 160, 90), (60, 60, 80))
+TIMUR = _c((70, 72, 80), (24, 22, 22), (40, 44, 56))
+TEACHER = _c((120, 90, 130), (150, 150, 156), (70, 64, 80))
+PE = _c((40, 70, 150), (60, 60, 60), (40, 66, 140), skin=(150, 168, 138))   # физрук-зомби: синий спортивный костюм, серая кожа
+GUARD = _c((34, 36, 42), (30, 30, 30), (30, 32, 38), skin=(150, 168, 138))
+_KID = [((150, 150, 160), (60, 44, 34)), ((60, 90, 70), (30, 26, 24)), ((180, 170, 150), (120, 80, 50)), ((90, 80, 120), (40, 30, 26)),
+        ((70, 110, 160), (200, 170, 110)), ((160, 120, 90), (20, 18, 18)), ((120, 60, 70), (90, 60, 40)), ((200, 200, 205), (50, 40, 34))]
+def kid_col(j): b, h = _KID[j % len(_KID)]; return _c(b, h)
+
+def max_(root, t, **kw): return person(root, t, colors=MAX, hat="hair", **kw)
+def liza(root, t, **kw): return person(root, t, colors=LIZA, hat="bun", scale=0.92, **kw)
+def timur(root, t, **kw): return person(root, t, colors=TIMUR, hat="hair", scale=1.08, **kw)
+def teacher(root, t, **kw): return person(root, t, colors=TEACHER, hat="bun", skirt=rgb((70, 64, 80)), scale=0.95, **kw)
+def kid(j, root, t, **kw): return person(root, t, colors=kid_col(j), hat="bun" if j % 3 == 1 else "hair", scale=0.9 + 0.04 * (j % 3), **kw)
+def zombie(root, t, colors=PE, **kw):
+    kw.setdefault("arm", "zombie"); kw.setdefault("mouth", "o")
+    return person(root, t, colors=colors, hat="hair", **kw)
+
+WOOD = rgb((176, 140, 100)); WALL = rgb((214, 206, 186)); WALL_D = rgb((150, 160, 150)); WHITE_ = rgb((236, 236, 232))
+DESK = rgb((196, 170, 130)); METAL = rgb((90, 96, 106)); BOARD = rgb((40, 70, 56))
+WIN_Z = (-4.6, -0.6, 3.4); WIN_W = 2.6                                          # окна в левой стене x=-6
+DOOR_Z = -5.8                                                                   # дверь в правой стене x=6
+SEATS = [(cx + dx, z) for z in (-3.6, -1.2, 1.2, 3.6) for cx in (-3.4, 0.0, 3.4) for dx in (-0.42, 0.42)]
+MAX_SEAT = 22                                                                   # (3.0, 3.6) — задняя парта у правого ряда
+
+def desk(x, z, ry=0.0):
+    m = T(x, 0, z) @ Ry(ry)
+    it = [box(m @ T(0, 0.78, 0) @ S(1.6, 0.06, 0.7), DESK), box(m @ T(0, 0.5, -0.33) @ S(1.56, 0.5, 0.04), METAL)]
+    for sx in (-0.74, 0.74): it.append(box(m @ T(sx, 0.38, 0) @ S(0.05, 0.76, 0.62), METAL))
+    return it
+
+def chair(x, z):
+    return [box(T(x, 0.46, z) @ S(0.5, 0.05, 0.46), DESK), box(T(x, 0.8, z + 0.22) @ S(0.5, 0.5, 0.04), DESK), box(T(x, 0.22, z) @ S(0.46, 0.44, 0.42), METAL)]
+
+def _wall_x(x, z0, z1, holes, y0, y1, col):
+    """Стена вдоль z с проёмами holes=[(zc, w, ya, yb)]."""
+    it = []; cuts = sorted(holes)
+    z = z0
+    for zc, w, ya, yb in cuts:
+        a, b = zc - w / 2, zc + w / 2
+        if a > z: it.append(box(T(x, (y0 + y1) / 2, (z + a) / 2) @ S(0.2, y1 - y0, a - z), col))
+        if ya > y0: it.append(box(T(x, (y0 + ya) / 2, zc) @ S(0.2, ya - y0, w), col))
+        if yb < y1: it.append(box(T(x, (yb + y1) / 2, zc) @ S(0.2, y1 - yb, w), col))
+        z = b
+    if z < z1: it.append(box(T(x, (y0 + y1) / 2, (z + z1) / 2) @ S(0.2, y1 - y0, z1 - z), col))
+    return it
+
+def classroom():
+    it = [box(T(0, -0.1, -1) @ S(12.4, 0.2, 14.4), WOOD, cast=False), box(T(0, 3.7, -1) @ S(12.4, 0.2, 14.4), WHITE_, cast=False)]
+    it += _wall_x(-6.1, -8, 6, [(z, WIN_W, 1.0, 2.9) for z in WIN_Z], 0, 3.6, WALL)
+    it += _wall_x(6.1, -8, 6, [(DOOR_Z, 1.5, 0, 2.5)], 0, 3.6, WALL)
+    it.append(box(T(0, 1.8, -8.1) @ S(12.4, 3.6, 0.2), WALL, cast=False)); it.append(box(T(0, 1.8, 6.1) @ S(12.4, 3.6, 0.2), WALL, cast=False))
+    it.append(box(T(0, 0.5, -7.98) @ S(12, 1.0, 0.04), WALL_D, cast=False)); it.append(box(T(0, 0.5, 5.98) @ S(12, 1.0, 0.04), WALL_D, cast=False))
+    it.append(box(T(0, 1.9, -7.97) @ S(5.2, 1.5, 0.06), BOARD, cast=False)); it.append(box(T(0, 1.12, -7.9) @ S(5.2, 0.06, 0.16), METAL, cast=False))
+    for k, (x, y) in enumerate(((-1.6, 2.2), (-0.4, 2.0), (0.9, 2.3))): it.append(box(T(x, y, -7.93) @ S(0.9 - 0.2 * k, 0.04, 0.02), WHITE_, cast=False))
+    it.append(ball(T(4.2, 3.0, -7.95) @ S(0.6, 0.6, 0.06), WHITE_, cast=False))                       # часы
+    for z in WIN_Z:
+        for dz in (-WIN_W / 2, WIN_W / 2): it.append(box(T(-6.05, 1.95, z + dz) @ S(0.12, 1.9, 0.08), WHITE_, cast=False))
+        for y in (1.0, 2.9): it.append(box(T(-6.05, y, z) @ S(0.12, 0.08, WIN_W), WHITE_, cast=False))
+    it.append(box(T(-1.2, 0.78, -6.6) @ S(2.0, 0.08, 0.9), DESK)); it.append(box(T(-1.2, 0.4, -6.6) @ S(1.9, 0.76, 0.8), METAL))   # стол учителя
+    for x in (-3, 3):
+        for z in (-4, 2): it.append(box(T(x, 3.58, z) @ S(1.4, 0.06, 0.3), rgb((255, 250, 235)), emit=2.0, cast=False))
+    return it
+LIGHTS_IN = [((x, 3.2, z), (1.6, 1.55, 1.45), 8.5) for x in (-3, 3) for z in (-4, 2)]
+
+def desks_all(skip=()):
+    it = []
+    for j, (z) in enumerate((-3.6, -1.2, 1.2, 3.6)):
+        for cx in (-3.4, 0.0, 3.4):
+            if (cx, z) in skip: continue
+            it += desk(cx, z - 0.55)
+    return it
+
+def seated(t, which=None, skip=(), mood=None):
+    """Ученики «сидят»: тело опущено, ноги уходят под пол, низ прячет парта."""
+    it = []
+    for j, (x, z) in enumerate(SEATS):
+        if j in skip: continue
+        root = T(x, -0.62, z) @ Ry(PI)
+        if j == MAX_SEAT: p, _ = max_(root, t, blink_seed=0.7, look=0.2 * math.sin(t * 0.7), mouth=mood)
+        else: p, _ = kid(j, root, t, blink_seed=j * 0.37, look=0.25 * math.sin(t * 0.6 + j), mouth=mood if j % 2 else None)
+        it += p
+    return it
+
+def corridor():
+    X0, X1 = 6.2, 9.6; it = [box(T(7.9, -0.1, -12) @ S(3.6, 0.2, 40), rgb((150, 140, 128)), cast=False), box(T(7.9, 3.5, -12) @ S(3.6, 0.2, 40), WHITE_, cast=False)]
+    it.append(box(T(X1 + 0.1, 1.75, -12) @ S(0.2, 3.5, 40), WALL, cast=False)); it.append(box(T(7.9, 1.75, -31.9) @ S(3.6, 3.5, 0.2), WALL, cast=False))
+    it.append(box(T(7.9, 1.9, -31.78) @ S(1.6, 1.6, 0.04), rgb((220, 232, 255)), emit=1.4, cast=False))
+    it.append(box(T(6.2 - 0.1, 1.75, -20) @ S(0.2, 3.5, 24), WALL, cast=False))
+    it.append(box(T(6.2 - 0.1, 1.75, 2) @ S(0.2, 3.5, 12), WALL, cast=False))
+    for z in range(-30, 6, 1):
+        if -8 < z < -4: continue
+        it.append(box(T(X1 - 0.25, 1.0, z + 0.5) @ S(0.4, 2.0, 0.9), rgb((70, 110, 140)) if z % 2 else rgb((64, 100, 128))))
+    for z in (-26, -18, -10): it.append(box(T(6.12, 1.6, z) @ S(0.06, 2.4, 1.4), rgb((130, 96, 70)), cast=False))   # двери других классов
+    return it
+def corridor_lights(t, flick=True):
+    L = []
+    for j, z in enumerate((-28, -20, -12, -4)):
+        on = 1.0 if not flick or j != 2 else (0.15 if (t * 7 + j) % 3 < 1 else 1.0)
+        L.append(((7.9, 3.1, z), (1.5, 1.5, 1.4), 9.0 * on + 0.01))
+    return L
+def corridor_lamps(t, flick=True):
+    it = []
+    for j, z in enumerate((-28, -20, -12, -4)):
+        on = 1.0 if not flick or j != 2 else (0.15 if (t * 7 + j) % 3 < 1 else 1.0)
+        it.append(box(T(7.9, 3.38, z) @ S(1.4, 0.06, 0.3), rgb((255, 250, 235)), emit=2.2 * on, cast=False))
+    return it
+
+def door(open_a=0.0, shake=0.0):
+    m = T(6.1, 0, DOOR_Z - 0.75) @ Ry(-open_a) @ T(0, 0, 0.75) @ T(shake, 0, 0)
+    return [box(m @ T(0, 1.25, 0) @ S(0.08, 2.5, 1.48), rgb((130, 96, 70))), box(m @ T(-0.08, 1.15, 0.55) @ S(0.06, 0.06, 0.14), METAL)]
+
+def tree(x, z, h=4.0, col=(214, 130, 50)):
+    return [cyl(T(x, -4 + h * 0.3, z) @ S(0.3, h * 0.6, 0.3), rgb((90, 64, 46))), ball(T(x, -4 + h * 0.75, z) @ S(h * 0.7, h * 0.6, h * 0.7), rgb(col))]
+
+def yard():
+    r = random.Random(9)
+    it = [box(T(-40, -4.1, 0) @ S(80, 0.2, 120), rgb((120, 120, 118)), cast=False), box(T(-6.3, -2, -1) @ S(0.2, 4.0, 14.4), rgb((200, 186, 160)), cast=False)]
+    it.append(box(T(-24, -3.99, 0) @ S(14, 0.02, 30), rgb((96, 130, 80)), cast=False))
+    for k in range(12): it.append(box(T(-31, -3.4, -20 + k * 4) @ S(0.08, 1.2, 0.08), METAL))
+    it.append(box(T(-31, -2.9, 0) @ S(0.06, 0.06, 48), METAL))
+    for k in range(14):
+        z = -22 + k * 3.4 + r.uniform(-1, 1)
+        it += tree(-34 - r.uniform(0, 6), z, r.uniform(3.5, 5.5), r.choice(((214, 130, 50), (196, 150, 60), (170, 100, 50))))
+    it.append(box(T(-50, 2, -6) @ S(10, 12, 30), rgb((180, 166, 146))))
+    for y in (0, 3, 6):
+        for z in range(-18, 8, 3): it.append(box(T(-44.94, y + 0.5, z) @ S(0.04, 1.4, 1.6), rgb((140, 170, 200)), cast=False))
+    return it
