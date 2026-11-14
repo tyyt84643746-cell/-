@@ -136,3 +136,33 @@ def yard():
     for y in (0, 3, 6):
         for z in range(-18, 8, 3): it.append(box(T(-44.94, y + 0.5, z) @ S(0.04, 1.4, 1.6), rgb((140, 170, 200)), cast=False))
     return it
+
+def facade():
+    """Фасад школы со стороны двора (x≈-6.3): стены вне класса, окна, карниз, парапет."""
+    F = rgb((200, 186, 160)); WIN = rgb((40, 50, 70))
+    it = [box(T(-6.35, 0.1, -16) @ S(0.2, 8.2, 16), F), box(T(-6.35, 0.1, 10) @ S(0.2, 8.2, 8), F),
+          box(T(-6.35, 3.9, -1) @ S(0.2, 0.6, 14.2), F), box(T(-6.5, 4.35, -5) @ S(0.5, 0.5, 40), rgb((170, 156, 132)))]
+    it.append(box(T(-6.6, 0.85, -8) @ S(0.5, 0.12, 32), rgb((180, 170, 150))))                       # карниз под окнами 2 этажа
+    for z in (-20, -16, -12, 9, 13):
+        it.append(box(T(-6.47, 1.95, z) @ S(0.04, 1.8, 2.4), rgb((70, 90, 110)) if z == -12 else WIN, emit=0.3 if z == -12 else 0, cast=False))
+    for z in (-20, -16, -12, -4.6, -0.6, 3.4, 9, 13): it.append(box(T(-6.47, -2.1, z) @ S(0.04, 1.8, 2.4), WIN, cast=False))
+    return it
+STAIR_Z = -12.0
+
+def storeroom():
+    """Каморка завхоза: x 30..34, z -2..2, дверь со стороны z=+2."""
+    W_ = rgb((150, 156, 140)); it = [box(T(32, -0.1, 0) @ S(4.4, 0.2, 4.4), rgb((120, 110, 96)), cast=False), box(T(32, 3.0, 0) @ S(4.4, 0.2, 4.4), W_, cast=False)]
+    it += [box(T(29.9, 1.5, 0) @ S(0.2, 3, 4.4), W_, cast=False), box(T(34.1, 1.5, 0) @ S(0.2, 3, 4.4), W_, cast=False), box(T(32, 1.5, -2.1) @ S(4.4, 3, 0.2), W_, cast=False)]
+    for y in (0.6, 1.3, 2.0): it.append(box(T(30.4, y, 0) @ S(0.7, 0.06, 3.6), rgb((120, 90, 64))))
+    for j, y in enumerate((0.75, 1.45, 2.15)):
+        for k in range(3): it.append(box(T(30.4, y + 0.08, -1.2 + k * 1.1) @ S(0.5, 0.22 + 0.06 * ((j + k) % 2), 0.6), rgb((170, 130, 90)) if (j + k) % 2 else rgb((90, 110, 130))))
+    for k in range(3): it.append(cyl(T(33.6, 0.9, 0.8 + k * 0.3) @ Rz(0.12) @ S(0.05, 1.8, 0.05), rgb((140, 104, 70))))
+    it.append(cyl(T(33.4, 0.25, 1.5) @ S(0.5, 0.5, 0.5), rgb((70, 110, 160))))
+    it.append(box(T(33.0, 1.75, -1.98) @ S(0.04, 0.04, 0.06), METAL))                                  # гвоздь
+    it.append(ball(T(32, 2.85, 0) @ S(0.22), rgb((255, 230, 170)), emit=5.0, cast=False))
+    return it
+KEY_PT = (33.0, 1.6, -1.94)
+def key(glint=1.0):
+    return [box(T(33.0, 1.6, -1.95) @ S(0.1, 0.24, 0.02), rgb((230, 190, 70)), emit=0.8 * glint, cast=False), ball(T(33.0, 1.74, -1.95) @ S(0.12, 0.12, 0.03), rgb((230, 190, 70)), emit=0.8 * glint, cast=False)]
+JANITOR = _c((96, 100, 92), (120, 120, 120), (60, 62, 60), skin=(190, 186, 166))
+def janitor(root, t, **kw): return person(root, t, colors=JANITOR, hat="bald", **kw)
